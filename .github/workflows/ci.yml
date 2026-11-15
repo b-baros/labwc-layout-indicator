@@ -1,0 +1,94 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+    tags: ['v*']
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    name: Test (${{ matrix.image }})
+    runs-on: ubuntu-24.04
+    container: ${{ matrix.image }}
+    strategy:
+      fail-fast: false
+      matrix:
+        image: ['debian:bookworm', 'debian:trixie']
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install dependencies
+        run: |
+          apt-get update
+          apt-get install -y --no-install-recommends gcc libc6-dev meson ninja-build pkgconf \
+            libwayland-dev libxkbcommon-dev libsystemd-dev xkb-data
+      - name: Build with sanitizers
+        run: meson setup build -Dbuildtype=debug -Dwerror=true -Db_sanitize=address,undefined
+      - name: Test
+        run: meson test -C build --print-errorlogs
+
+  package:
+    name: Package (${{ matrix.arch }})
+    needs: test
+    runs-on: ${{ matrix.runner }}
+    container: debian:bookworm
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - { arch: amd64, runner: ubuntu-24.04 }
+          - { arch: arm64, runner: ubuntu-24.04-arm }
+          - { arch: armhf, runner: ubuntu-24.04, cross: true }
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install build dependencies
+        run: |
+          deps="libwayland-dev libxkbcommon-dev libsystemd-dev"
+          if [ "${{ matrix.cross }}" = true ]; then
+            dpkg --add-architecture ${{ matrix.arch }}
+            host_deps=$(printf '%s:${{ matrix.arch }} ' $deps)
+            extra="crossbuild-essential-${{ matrix.arch }}"
+          else
+            host_deps=$deps
+            extra=""
+          fi
+          apt-get update
+          apt-get install -y --no-install-recommends build-essential debhelper meson ninja-build \
+            pkgconf xkb-data $extra $host_deps
+      - name: Build package
+        run: |
+          if [ "${{ matrix.cross }}" = true ]; then
+            dpkg-buildpackage -a${{ matrix.arch }} -b -us -uc
+          else
+            dpkg-buildpackage -b -us -uc
+          fi
+          mkdir dist
+          mv ../labwc-layout-indicator_*.deb dist/
+      - uses: actions/upload-artifact@v4
+        with:
+          name: deb-${{ matrix.arch }}
+          path: dist/*.deb
+
+  release:
+    name: Release
+    if: startsWith(github.ref, 'refs/tags/v')
+    needs: package
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/download-artifact@v4
+        with:
+          path: dist
+          merge-multiple: true
+      - name: Publish release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          version="${GITHUB_REF_NAME#v}"
+          awk -v v="$version" '/^## /{ if (found) exit; if (index($0, v)) found = 1; next } found' CHANGELOG.md > notes.md
+          gh release create "$GITHUB_REF_NAME" dist/*.deb --title "$GITHUB_REF_NAME" --notes-file notes.md

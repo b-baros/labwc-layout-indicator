@@ -1,0 +1,6 @@
+option('sd-bus-provider', type: 'combo', choices: ['auto', 'libsystemd', 'libelogind', 'basu'], value: 'auto',
+	description: 'Library that provides sd-bus')
+option('autostart-dir', type: 'string', value: '/etc/xdg/autostart',
+	description: 'Where to install the XDG autostart entry')
+option('udev-rules-dir', type: 'string', value: '/usr/lib/udev/rules.d',
+	description: 'Where to install the udev rule that gives the session access to /dev/uinput')

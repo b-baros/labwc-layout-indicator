@@ -1,0 +1,28 @@
+Source: labwc-layout-indicator
+Section: x11
+Priority: optional
+Maintainer: Bojan Baroš <159401986+b-baros@users.noreply.github.com>
+Build-Depends: debhelper-compat (= 13),
+               meson,
+               ninja-build,
+               pkgconf,
+               libwayland-dev,
+               libxkbcommon-dev,
+               libsystemd-dev,
+               xkb-data
+Standards-Version: 4.6.2
+Homepage: https://github.com/b-baros/labwc-layout-indicator
+Vcs-Browser: https://github.com/b-baros/labwc-layout-indicator
+Vcs-Git: https://github.com/b-baros/labwc-layout-indicator.git
+Rules-Requires-Root: no
+
+Package: labwc-layout-indicator
+Architecture: any
+Depends: ${shlibs:Depends}, ${misc:Depends}
+Recommends: labwc
+Description: keyboard layout indicator for the labwc system tray
+ Shows the active keyboard layout as a coloured badge (EN, SR, СР, DE, ...)
+ in any StatusNotifierItem tray, such as wf-panel-pi on Raspberry Pi OS.
+ Left click switches to the next layout, right click to the previous one and
+ middle click back to the first. Every standard xkb layout has its own label
+ and a colour taken from its flag.

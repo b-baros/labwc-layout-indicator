@@ -1,0 +1,2 @@
+# Lets the active session create the virtual key labwc-layout-indicator taps to switch layouts.
+KERNEL=="uinput", SUBSYSTEM=="misc", TAG+="uaccess", OPTIONS+="static_node=uinput"

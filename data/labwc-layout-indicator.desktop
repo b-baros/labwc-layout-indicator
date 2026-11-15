@@ -1,0 +1,9 @@
+[Desktop Entry]
+Type=Application
+Name=Keyboard Layout Indicator
+Comment=Shows the active keyboard layout in the system tray
+Exec=sh -c "command -v lwrespawn >/dev/null && exec lwrespawn labwc-layout-indicator || exec labwc-layout-indicator"
+Icon=input-keyboard
+NoDisplay=true
+OnlyShowIn=labwc;rpd-wayland;
+X-GNOME-Autostart-enabled=true
