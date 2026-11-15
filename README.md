@@ -9,7 +9,7 @@ compositor of Raspberry Pi OS. It shows the active layout as a coloured badge an
   badge updates within milliseconds.
 - **Click to switch.** Left click goes to the next layout, right click to the previous one, middle click back to
   the first.
-- **A badge for every layout.** All 98 standard xkb layouts have a hand-picked label and a colour taken from their
+- **A badge for every layout.** All standard xkb layouts have a hand-picked label and a colour taken from their
   flag, toned down so white text stays readable. Layouts that type a non-Latin script are labelled in that script:
   СР, РУ, ΕΛ, עב, ქა.
 - **No changes to the compositor.** Works with stock labwc and any StatusNotifierItem tray.
