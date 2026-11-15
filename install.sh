@@ -31,7 +31,7 @@ chmod 755 "$tmp"
 curl -fsSL -o "$tmp/$name.deb" "$url"
 chmod 644 "$tmp/$name.deb"
 echo "Installing ${url##*/}"
-sudo apt-get install -y "$tmp/$name.deb"
+sudo apt-get install -y "$tmp/$name.deb" </dev/null
 
 if [ -z "${WAYLAND_DISPLAY:-}" ]; then
 	echo "Installed. It starts the next time you log in to the desktop."
