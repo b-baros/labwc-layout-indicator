@@ -8,6 +8,7 @@ Build-Depends: debhelper-compat (= 13),
                pkgconf,
                libwayland-dev,
                libxkbcommon-dev,
+               libxkbregistry-dev,
                libsystemd-dev,
                xkb-data
 Standards-Version: 4.6.2

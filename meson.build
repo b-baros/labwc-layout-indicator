@@ -9,6 +9,7 @@ add_project_arguments('-D_GNU_SOURCE', '-Wno-unused-parameter', language: 'c')
 
 wayland_client = dependency('wayland-client')
 xkbcommon = dependency('xkbcommon', version: '>=1.0.0')
+xkbregistry = dependency('xkbregistry')
 math = cc.find_library('m', required: false)
 
 sdbus_provider = get_option('sd-bus-provider')
@@ -35,7 +36,7 @@ configure_file(output: 'config.h', configuration: conf)
 src = include_directories('src')
 core = static_library('core',
 	'src/badges.c', 'src/keymap.c', 'src/layouts.c',
-	dependencies: xkbcommon)
+	dependencies: [xkbcommon, xkbregistry])
 
 executable('labwc-layout-indicator',
 	'src/main.c', 'src/state.c', 'src/switcher.c', 'src/tray.c', 'src/wayland.c',

@@ -51,6 +51,18 @@ static char *compile(const char *layout, const char *variant, const char *option
 	return text;
 }
 
+/* libxkbcommon before 1.12 writes "xkb_symbols {" without the name that carries the codes. */
+static void remove_symbols_name(char *text)
+{
+	char *name = strstr(text, "xkb_symbols \"");
+	if (!name)
+		return;
+	name += strlen("xkb_symbols ");
+	char *end = strchr(name + 1, '"');
+	if (end)
+		memmove(name, end + 1, strlen(end + 1) + 1);
+}
+
 /* Keymaps without inet(evdev) have no dedicated layout key. */
 static void remove_layout_key(char *text)
 {
@@ -78,6 +90,16 @@ static void test_serbian(void)
 	CHECK(info.has_toggle);
 	CHECK(info.toggle.key == KEY_KBD_LAYOUT_NEXT);
 	CHECK(info.toggle.modifier_count == 0);
+
+	remove_symbols_name(text);
+	CHECK(strstr(text, "xkb_symbols \"") == NULL);
+	CHECK(keymap_info_parse(ctx, text, &info));
+	CHECK(info.count == 3);
+	CHECK_STR(info.layouts[0].code, "us");
+	CHECK_STR(info.layouts[1].code, "rs");
+	CHECK_STR(info.layouts[1].variant, "latinyz");
+	CHECK_STR(info.layouts[2].code, "rs");
+	CHECK_STR(info.layouts[2].variant, "yz");
 
 	remove_layout_key(text);
 	CHECK(keymap_info_parse(ctx, text, &info));
@@ -109,9 +131,9 @@ static void test_toggle_with_modifier(void)
 static void test_scripts(void)
 {
 	struct keymap_info info;
-	char *text = compile("ru,gr,il,de,jp", "", "");
+	char *text = compile("ru,gr,il,de", "", "");
 	CHECK(text && keymap_info_parse(ctx, text, &info));
-	CHECK(info.count >= 4);
+	CHECK(info.count == 4);
 	CHECK(info.layouts[0].native_script);
 	CHECK(info.layouts[1].native_script);
 	CHECK(info.layouts[2].native_script);

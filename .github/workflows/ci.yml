@@ -19,12 +19,12 @@ jobs:
       matrix:
         image: ['debian:bookworm', 'debian:trixie']
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
       - name: Install dependencies
         run: |
           apt-get update
           apt-get install -y --no-install-recommends gcc libc6-dev meson ninja-build pkgconf \
-            libwayland-dev libxkbcommon-dev libsystemd-dev xkb-data
+            libwayland-dev libxkbcommon-dev libxkbregistry-dev libsystemd-dev xkb-data
       - name: Build with sanitizers
         run: meson setup build -Dbuildtype=debug -Dwerror=true -Db_sanitize=address,undefined
       - name: Test
@@ -43,10 +43,10 @@ jobs:
           - { arch: arm64, runner: ubuntu-24.04-arm }
           - { arch: armhf, runner: ubuntu-24.04, cross: true }
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
       - name: Install build dependencies
         run: |
-          deps="libwayland-dev libxkbcommon-dev libsystemd-dev"
+          deps="libwayland-dev libxkbcommon-dev libxkbregistry-dev libsystemd-dev"
           if [ "${{ matrix.cross }}" = true ]; then
             dpkg --add-architecture ${{ matrix.arch }}
             host_deps=$(printf '%s:${{ matrix.arch }} ' $deps)
@@ -80,7 +80,7 @@ jobs:
     permissions:
       contents: write
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
       - uses: actions/download-artifact@v4
         with:
           path: dist

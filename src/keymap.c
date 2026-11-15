@@ -3,6 +3,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <xkbcommon/xkbregistry.h>
 
 #include "keymap.h"
 
@@ -88,6 +89,28 @@ size_t keymap_parse_symbols_name(const char *symbols, char codes[][32], char var
 			found = index + 1;
 	}
 	return found;
+}
+
+/* libxkbcommon before 1.12 leaves the symbols section unnamed; look the codes up by layout name instead. */
+static void codes_from_registry(struct keymap_info *info)
+{
+	struct rxkb_context *ctx = rxkb_context_new(RXKB_CONTEXT_LOAD_EXOTIC_RULES);
+	if (!ctx)
+		return;
+	if (rxkb_context_parse_default_ruleset(ctx)) {
+		for (struct rxkb_layout *l = rxkb_layout_first(ctx); l; l = rxkb_layout_next(l)) {
+			const char *description = rxkb_layout_get_description(l);
+			const char *variant = rxkb_layout_get_variant(l);
+			for (size_t i = 0; description && i < info->count; i++) {
+				struct layout_info *layout = &info->layouts[i];
+				if (layout->code[0] || strcmp(layout->name, description) != 0)
+					continue;
+				snprintf(layout->code, sizeof(layout->code), "%s", rxkb_layout_get_name(l));
+				snprintf(layout->variant, sizeof(layout->variant), "%s", variant ? variant : "");
+			}
+		}
+	}
+	rxkb_context_unref(ctx);
 }
 
 static bool is_latin(uint32_t cp)
@@ -202,6 +225,12 @@ bool keymap_info_parse(struct xkb_context *ctx, const char *text, struct keymap_
 		copy_string(layout->code, sizeof(layout->code), codes[i], strlen(codes[i]));
 		copy_string(layout->variant, sizeof(layout->variant), variants[i], strlen(variants[i]));
 		layout->native_script = types_native_script(keymap, (xkb_layout_index_t)i);
+	}
+	for (size_t i = 0; i < out->count; i++) {
+		if (!out->layouts[i].code[0] && out->layouts[i].name[0]) {
+			codes_from_registry(out);
+			break;
+		}
 	}
 
 	struct toggle_search search = { 0 };

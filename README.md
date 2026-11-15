@@ -33,7 +33,8 @@ You can also download the `.deb` for your architecture from the releases page yo
 For the Pi 1 and Pi Zero (ARMv6) and for other distributions:
 
 ```sh
-sudo apt install build-essential meson ninja-build pkgconf libwayland-dev libxkbcommon-dev libsystemd-dev
+sudo apt install build-essential meson ninja-build pkgconf libwayland-dev libxkbcommon-dev libxkbregistry-dev \
+  libsystemd-dev
 git clone https://github.com/b-baros/labwc-layout-indicator.git
 cd labwc-layout-indicator
 meson setup build
